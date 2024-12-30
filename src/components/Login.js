@@ -2,13 +2,23 @@ import { useRef, useState } from "react";
 import Header from "./Header";
 import { checkValidData } from "../utils/validate";
 import { auth } from "../utils/firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
   const [errMessage, setErrMessage] = useState(null);
+  const name = useRef(null);
   const email = useRef(null);
   const Password = useRef(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const toggleSignInForm = () => {
     setIsSignInForm(!isSignInForm);
@@ -24,34 +34,65 @@ const Login = () => {
     //Now we can proceed sign in / sign up after validation.
     if (!isSignInForm) {
       // This means we are on Sign Up page and hence will write logic for Sign Up the user using email id and password
-      createUserWithEmailAndPassword(auth, email.current.value, Password.current.value)
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        Password.current.value
+      )
         .then((userCredential) => {
           // Signed up
           const user = userCredential.user;
-          console.log(user);
+
+          //This updateProfile is used to update the username and profile photo of current user.
+          updateProfile(user, {
+            displayName: name.current.value,
+            photoURL: "https://media.licdn.com/dms/image/v2/D5635AQEY4Phfw2SU5w/profile-framedphoto-shrink_400_400/profile-framedphoto-shrink_400_400/0/1727288103546?e=1736161200&v=beta&t=yD1LYV0pG0JzOmkOSo_Ej4w2ACGsVcRKlUZ1BMVPQOU",
+          })
+            .then(() => {
+              // once Profile updated, then navigate to the browse page!
+              //Here we are again dispatching the action to avoid any inconsistency
+              const { uid, email, displayName, photoURL } = user;
+              dispatch(
+                addUser({
+                  uid: uid,
+                  email: email,
+                  name: displayName,
+                  photoUrl: photoURL,
+                })
+              );
+              navigate("/browse");
+            })
+            .catch((error) => {
+              // An error occurred
+              setErrMessage(error.message);
+            });
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
-          setErrMessage(errorCode+"-"+errorMessage);
+          setErrMessage(errorCode + "-" + errorMessage);
+        });
+    } else {
+      // Now this is the logic if we are on Sign In page, that means user is already registered on firebase
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        Password.current.value
+      )
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user);
+          navigate("/browse");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrMessage(errorCode + "-" + errorMessage);
         });
     }
-    else
-    {
-      // Now this is the logic if we are on Sign In page, that means user is already registered on firebase
-      signInWithEmailAndPassword(auth, email.current.value, Password.current.value)
-  .then((userCredential) => {
-    // Signed in 
-    const user = userCredential.user;
-    console.log(user);
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    setErrMessage(errorCode+"-"+errorMessage);
-  });
-    }
   };
+
   return (
     <div className="h-full w-full">
       <Header />
@@ -70,6 +111,7 @@ const Login = () => {
         </h2>
         {!isSignInForm && (
           <input
+            ref={name}
             type="text"
             placeholder="Full Name"
             className="p-3 mb-5 w-full bg-gray-700"
