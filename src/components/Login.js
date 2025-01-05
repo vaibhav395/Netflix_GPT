@@ -7,9 +7,9 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
+import { usericon } from "../utils/constants";
 
 const Login = () => {
   const [isSignInForm, setIsSignInForm] = useState(true);
@@ -17,7 +17,6 @@ const Login = () => {
   const name = useRef(null);
   const email = useRef(null);
   const Password = useRef(null);
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const toggleSignInForm = () => {
@@ -42,11 +41,12 @@ const Login = () => {
         .then((userCredential) => {
           // Signed up
           const user = userCredential.user;
+          console.log("User registered", user);
 
           //This updateProfile is used to update the username and profile photo of current user.
           updateProfile(user, {
             displayName: name.current.value,
-            photoURL: "https://media.licdn.com/dms/image/v2/D5635AQEY4Phfw2SU5w/profile-framedphoto-shrink_400_400/profile-framedphoto-shrink_400_400/0/1727288103546?e=1736161200&v=beta&t=yD1LYV0pG0JzOmkOSo_Ej4w2ACGsVcRKlUZ1BMVPQOU",
+            photoURL: usericon,
           })
             .then(() => {
               // once Profile updated, then navigate to the browse page!
@@ -60,7 +60,6 @@ const Login = () => {
                   photoUrl: photoURL,
                 })
               );
-              navigate("/browse");
             })
             .catch((error) => {
               // An error occurred
@@ -83,7 +82,6 @@ const Login = () => {
           // Signed in
           const user = userCredential.user;
           console.log(user);
-          navigate("/browse");
         })
         .catch((error) => {
           const errorCode = error.code;
