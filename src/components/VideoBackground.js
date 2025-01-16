@@ -4,13 +4,12 @@ import { useSelector } from "react-redux";
 import useMovieTrailer from "../hooks/useMovieTrailer";
 
 const VideoBackground = ({ video_id }) => {
-  //This custom hook is responsible for fetching the movie trailer and putting it up on the background.
+  //This custom hook is responsible for fetching the movie trailer and putting (add to redux store) it up on the background.
   useMovieTrailer(video_id);
 
 
   //As we had put that trailer in the store, now we are fetching the trailer from the redux store.
   const trailerVideo = useSelector((store) => store.movies?.trailer);
-  console.log("trailer video", trailerVideo);
 
   return (
     <div className="w-screen">

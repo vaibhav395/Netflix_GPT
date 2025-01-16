@@ -17,7 +17,6 @@ const useMovieTrailer = (movie_id) => {
       API_options
     );
     const json = await data.json();
-    console.log("Video background", json);
 
     const filterTrailer = json.results.filter(
       (videos) => videos.type === "Trailer"
@@ -28,7 +27,6 @@ const useMovieTrailer = (movie_id) => {
 
     //We have added trailer to redux store, and fetched data from redux store to display trailer
     dispatch(addTrailer(trailer));
-    console.log("Trailer", trailer);
   };
 
   useEffect(() => {

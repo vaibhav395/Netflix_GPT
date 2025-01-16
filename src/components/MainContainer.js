@@ -7,10 +7,10 @@ const MainContainer = ()=>{
     //Fetching the movies from the store and taking the first movie to show as video background
     const movies = useSelector(store=>store.movies?.NowPlayingMovies);
     if(!movies) return;
-    
-    const MainMovie = movies[0];
+    // 6
+    const MainMovie = movies[16];
     const{original_title, overview, id} = MainMovie;
-    console.log(MainMovie);
+    
 
 
 
