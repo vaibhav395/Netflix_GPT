@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { API_options } from "../utils/constants";
 import { addTrailer } from "../utils/movieSlice";
 import { useEffect } from "react";
@@ -8,6 +8,7 @@ import { useEffect } from "react";
 //Basically this hook fetches videos based on this movie_id, filtering those for trailers and putting it up to store
 const useMovieTrailer = (movie_id) => {
   const dispatch = useDispatch();
+  const trailerVideo = useSelector((store)=>store?.Movies?.trailer);
 
   //Fetching the trailer video and updating the store with it
   const getMainMovieTrailer = async () => {
@@ -30,7 +31,7 @@ const useMovieTrailer = (movie_id) => {
   };
 
   useEffect(() => {
-    getMainMovieTrailer();
+    !trailerVideo && getMainMovieTrailer();
   }, []);
 };
 

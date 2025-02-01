@@ -4,6 +4,7 @@ import { useRef } from "react";
 import model from "../utils/generativeAi";
 import { API_options } from "../utils/constants";
 import { addGeminiMovieResult } from "../utils/gptSlice";
+import { toggleShimmer } from "../utils/shimmerSlice";
 
 const GptSearchBar = () => {
   const language = useSelector((store) => store?.config?.lang);
@@ -11,24 +12,31 @@ const GptSearchBar = () => {
   const dispatch = useDispatch();
 
   const searchFromTMDB = async (movie) => {
-    const data = await fetch(
-      "https://api.themoviedb.org/3/search/movie?query=" +
-        movie +
-        "&include_adult=false&language=en-US&page=1",
-      API_options
-    );
-    const json = await data.json();
-    return json.results;
+    try{
+      const data = await fetch(
+        "https://api.themoviedb.org/3/search/movie?query=" +
+          movie +
+          "&include_adult=false&language=en-US&page=1",
+        API_options
+      );
+      const json = await data.json();
+      return json.results;
+    }
+    catch(err)
+    {
+      console.log("error", err);
+    }
   };
 
   const handleSearchTextSubmit = async () => {
     try {
+      dispatch(toggleShimmer());
       console.log(searchText.current.value);
 
       const prompt =
         "Act as a movie recommendation system and suggest some movies for the query : " +
         searchText.current.value +
-        "only give me name of 5 movies, comma sepreated like the example result given ahead. Example result : Gadar, 3 idiots, Phir Hera Pheri, Dhamaal, Dhol";
+        " only give me name of 5 movies, comma sepreated like the example result given ahead. Example result : Gadar, 3 idiots, Phir Hera Pheri, Dhamaal, Dhol";
       const result = await model.generateContent(prompt);
       console.log(result.response.text());
 
@@ -40,11 +48,12 @@ const GptSearchBar = () => {
       const data = geminiMoviesName.map((movie) => searchFromTMDB(movie));
 
       //Now we have to resolve all the promise using promise.all, basically when all the promises get resolved then i will get the result
-      //Here we are getting all the movies with the name that gemini gave us.
+      //Basically we are getting many results for a single movie, as we are getting all the movies in which that name is present which gemini gave us
       //Now we are pushing these movies into our store
       const tmdbResults = await Promise.all(data);
 
       dispatch(addGeminiMovieResult({ geminiMoviesName, tmdbResults }));
+
       console.log(tmdbResults);
     } catch (err) {
       console.log(err);
